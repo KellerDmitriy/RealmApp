@@ -72,7 +72,7 @@ final class TaskListViewController: UITableViewController {
             isDone(true)
         }
         
-        editAction.backgroundColor = .orange
+        editAction.backgroundColor = #colorLiteral(red: 0.9372549057, green: 0.5072891746, blue: 0.1921568662, alpha: 1)
         doneAction.backgroundColor = #colorLiteral(red: 0.3411764801, green: 0.6235294342, blue: 0.1686274558, alpha: 1)
         
         return UISwipeActionsConfiguration(actions: [doneAction, editAction, deleteAction])
