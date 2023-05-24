@@ -45,6 +45,10 @@ final class TasksViewController: UITableViewController {
         section == 0 ? "CURRENT TASKS" : "COMPLETED TASKS"
     }
     
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TasksCell", for: indexPath)
         var content = cell.defaultContentConfiguration()
@@ -70,9 +74,23 @@ final class TasksViewController: UITableViewController {
             isDone(true)
         }
         
-        let doneAction = UIContextualAction(style: .normal, title: "Done") { [unowned self] _, _, isDone in
-            storageManager.done(task)
-            tableView.reloadRows(at: [indexPath], with: .automatic)
+        let doneActionTitle = task.isComplete ? "Undone" : "Done"
+        let doneAction = UIContextualAction(style: .normal, title: doneActionTitle) { [unowned self] _, _, isDone in
+            if task.isComplete {
+                storageManager.unDone(task)
+                let newRowIndex = IndexPath(row: currentTasks.count - 1, section: 0)
+                tableView.performBatchUpdates {
+                    tableView.moveRow(at: indexPath, to: newRowIndex)
+                    tableView.reloadRows(at: [newRowIndex], with: .automatic)
+                }
+            } else {
+                storageManager.done(task)
+                let newRowIndex = IndexPath(row: completedTasks.count - 1, section: 1)
+                tableView.performBatchUpdates {
+                    tableView.moveRow(at: indexPath, to: newRowIndex)
+                    tableView.reloadRows(at: [newRowIndex], with: .automatic)
+                }
+            }
             isDone(true)
         }
         
@@ -81,11 +99,10 @@ final class TasksViewController: UITableViewController {
         
         return UISwipeActionsConfiguration(actions: [doneAction, editAction, deleteAction])
     }
-    
+    // MARK: - Private methods
     @objc private func addButtonPressed() {
         showAlert()
     }
-
 }
 
 extension TasksViewController {
@@ -103,6 +120,8 @@ extension TasksViewController {
             ) { [weak self] taskTitle, taskNote in
                 if let task, let completion {
                     // TODO: - edit task
+                    self?.storageManager.edit(task, newValue: taskTitle, noteNewValue: taskNote)
+                    completion()
                     return
                 }
                 self?.save(task: taskTitle, withNote: taskNote)
